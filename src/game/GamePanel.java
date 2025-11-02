@@ -2,6 +2,7 @@ package game;
 
 import bullet.attackstrategy.AttackStrategy;
 import bullet.bullets.Arrow;
+import bullet.bullets.Cigarette;
 import bullet.bullets.MagicThing;
 import entity.Moveable;
 import entity.Rendered;
@@ -96,7 +97,7 @@ public class GamePanel extends JPanel {
                 player1AttackStrategy = new AttackStrategy(new MagicThing(player2));
                 break;
             case 2: // Warrior
-                player1AttackStrategy = new AttackStrategy(new Arrow(player2));
+                player1AttackStrategy = new AttackStrategy(new Cigarette(player2));
                 break;
             default:
                 player1AttackStrategy = new AttackStrategy(new Arrow(player2));
@@ -118,7 +119,7 @@ public class GamePanel extends JPanel {
                 player2AttackStrategy = new AttackStrategy(new MagicThing(player2));
                 break;
             case 2: // Warrior
-                player2AttackStrategy = new AttackStrategy(new Arrow(player2));
+                player2AttackStrategy = new AttackStrategy(new Cigarette(player2));
                 break;
             default:
                 player2AttackStrategy = new AttackStrategy(new Arrow(player2));
