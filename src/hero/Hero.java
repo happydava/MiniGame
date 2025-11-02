@@ -1,8 +1,8 @@
+// java
 package hero;
 
 import bullet.Bullet;
 import bullet.attackstrategy.AttackStrategy;
-import bullet.bullets.Arrow;
 import entity.Rendered;
 import game.GamePanel;
 
@@ -27,8 +27,11 @@ public class Hero implements KeyListener, Rendered {
     private int upBind;
     private int downBind;
 
-    private final AttackStrategy attackStrategy;
+    private AttackStrategy<? extends Bullet> attackStrategy;
     private int attackBind;
+
+    private long lastShot = 0;
+    private long shotCooldownMs = 300;
 
     public Hero(
             String name,
@@ -36,15 +39,12 @@ public class Hero implements KeyListener, Rendered {
             Image image,
             int x,
             int y,
-
             int leftBind,
             int rightBind,
             int upBind,
             int downBind,
-
             int speed,
-
-            AttackStrategy attackStrategy,
+            AttackStrategy<? extends Bullet> attackStrategy,
             int attackBind
     ) {
         this.name = name;
@@ -59,79 +59,71 @@ public class Hero implements KeyListener, Rendered {
         this.speed = speed;
         this.attackStrategy = attackStrategy;
         this.attackBind = attackBind;
-
         GamePanel.addRendered(this);
     }
 
-    public String getName() {
-        return name;
+    public void setAttackStrategy(AttackStrategy<? extends Bullet> strategy) {
+        this.attackStrategy = strategy;
     }
 
-    public int getHealth() {
-        return health;
-    }
+    public String getName() { return name; }
+    public int getHealth() { return health; }
 
     public void decreaseHealth(int damage) {
         health -= damage;
         if (health < 0) health = 0;
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
+    public int getX() { return x; }
+    public int getY() { return y; }
 
     public void move(int dx, int dy) {
         x += dx * speed;
         y += dy * speed;
-
-        x = Math.clamp(x, -10, 800);
-        y = Math.clamp(y, 0, 400);
+        x = Math.max(0, Math.min(x, 900));
+        y = Math.max(0, Math.min(y, 450));
     }
 
     public Rectangle getBounds() {
-        return new Rectangle(x, y, 100, 100); // Размер героя
+        return new Rectangle(x, y, 100, 100);
     }
 
-    public Image getImage() {
-        return image;
-    }
+    public Image getImage() { return image; }
 
     @Override
-    public void keyTyped(KeyEvent e) {
-
-    }
-
+    public void keyTyped(java.awt.event.KeyEvent e) {}
 
     @Override
-    public void keyPressed(KeyEvent e) {
-        // Управление только для соответствующего игрока
-        if (e.getKeyCode() == leftBind) xInput = -1; // Сдвиг влево
-        if (e.getKeyCode() == rightBind) xInput = 1; // Сдвиг вправо
-        if (e.getKeyCode() == upBind) yInput = -1; // Сдвиг вверх
-        if (e.getKeyCode() == downBind) yInput = 1; // Сдвиг вниз
+    public void keyPressed(java.awt.event.KeyEvent e) {
+        if (e.getKeyCode() == leftBind) xInput = -1;
+        if (e.getKeyCode() == rightBind) xInput = 1;
+        if (e.getKeyCode() == upBind) yInput = -1;
+        if (e.getKeyCode() == downBind) yInput = 1;
 
         if (e.getKeyCode() == attackBind) attack();
     }
 
     @Override
-    public void keyReleased(KeyEvent e) {
-        // Останавливаем движение при отпускании клавиши
+    public void keyReleased(java.awt.event.KeyEvent e) {
         if (e.getKeyCode() == leftBind || e.getKeyCode() == rightBind) xInput = 0;
         if (e.getKeyCode() == upBind || e.getKeyCode() == downBind) yInput = 0;
     }
 
     public void updatePosition() {
-        move(xInput, yInput);  // Обновляем позицию персонажа
+        move(xInput, yInput);
     }
 
     private void attack() {
-        Bullet bullet = attackStrategy.bullet;
+        if (attackStrategy == null) return;
+        long now = System.currentTimeMillis();
+        if (now - lastShot < shotCooldownMs) return;
+        lastShot = now;
 
-        bullet.createBullet(x, y, 1, 0);
+        Bullet b = attackStrategy.createBullet();
+        // decide direction based on enemy position (shoot towards enemy)
+        int dirX = 1;
+        if (b.getEnemy() != null && b.getEnemy().getX() < this.x) dirX = -1;
+        b.createBullet(this.x + 40, this.y + 40, dirX, 0);
     }
 
     @Override
