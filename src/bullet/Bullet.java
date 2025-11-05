@@ -1,4 +1,4 @@
-// java
+// src/bullet/Bullet.java
 package bullet;
 
 import entity.Moveable;
@@ -13,9 +13,10 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 public abstract class Bullet implements Moveable, Rendered {
-    private int x, y;
-    private int directionX, directionY;
-    private int speed = 12;
+    // теперь позиция и направление с плавающей точкой для точного прицеливания
+    private double x, y;
+    private double directionX, directionY;
+    private double speed = 12.0;
     private boolean alive = true;
 
     protected Hero enemy;
@@ -30,7 +31,8 @@ public abstract class Bullet implements Moveable, Rendered {
     }
 
     // initialize position & register to game lists
-    public Bullet createBullet(int x, int y, int directionX, int directionY) {
+    // принимаем double направления/координаты (int автоматически приводится)
+    public Bullet createBullet(double x, double y, double directionX, double directionY) {
         this.x = x;
         this.y = y;
         this.directionX = directionX;
@@ -58,8 +60,12 @@ public abstract class Bullet implements Moveable, Rendered {
         x += directionX * speed;
         y += directionY * speed;
 
-        // check bounds
-        if (x < -50 || x > 1100 || y < -50 || y > 800) {
+        // check bounds against actual game panel size (0..width/height)
+        int gw = GamePanel.getGameWidth();
+        int gh = GamePanel.getGameHeight();
+        int bulletW = 24;
+        int bulletH = 24;
+        if (getX() < 0 || getX() + bulletW > gw || getY() < 0 || getY() + bulletH > gh) {
             destroy();
             return;
         }
@@ -67,12 +73,12 @@ public abstract class Bullet implements Moveable, Rendered {
         onHit();
     }
 
-    public int getX() { return x; }
-    public int getY() { return y; }
+    public int getX() { return (int) Math.round(x); }
+    public int getY() { return (int) Math.round(y); }
     public Hero getEnemy() { return enemy; }
 
     public Rectangle getBounds() {
-        return new Rectangle(x, y, 24, 24);
+        return new Rectangle(getX(), getY(), 24, 24);
     }
 
     public Image getBulletImage() {
@@ -96,7 +102,7 @@ public abstract class Bullet implements Moveable, Rendered {
     @Override
     public void render(Graphics graphics, JPanel observer) {
         if (bulletImage != null && alive) {
-            graphics.drawImage(this.bulletImage, this.x, this.y, observer);
+            graphics.drawImage(this.bulletImage, this.getX(), this.getY(), observer);
         }
     }
 }
