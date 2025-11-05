@@ -1,6 +1,5 @@
-// java
-// файл: src/hero/Hero.java
 package hero;
+
 
 import bullet.Bullet;
 import bullet.attackstrategy.AttackStrategy;

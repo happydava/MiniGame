@@ -1,6 +1,5 @@
 package game;
 
-
 import boss.Boss;
 import bullet.attackstrategy.AttackStrategy;
 import bullet.bullets.Arrow;
